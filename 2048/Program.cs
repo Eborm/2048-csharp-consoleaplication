@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.ComponentModel;
+using System.Numerics;
 
 namespace _2048
 {
@@ -6,12 +7,13 @@ namespace _2048
     {
         static void Main(string[] args)
         {
+            bool notwin = true;
             Dictionary<int, List<int>> storage = new Dictionary<int, List<int>>
             {
                 { 0, new List<int>(){ 0, 0, 0, 0 } },
                 { 1, new List < int >() { 0, 0, 0, 0 } },
                 { 2, new List < int >() { 0, 0, 0, 0 } },
-                { 3, new List < int >() { 0, 0, 0, 0 } }
+                { 3, new List < int >() { 0, 0, 1024, 1024 } }
             }
             ;
 
@@ -19,25 +21,24 @@ namespace _2048
 
             Console.WriteLine("Welcome to my console representation of 2048");
 
-            while (true)
+            while (notwin)
             {
                 Console.Clear();
 
                 List<int> all_numbers_wincheck = new List<int>();
-                for (int i = 0; i < 3; i++)
+                for (int i = 0; i < 4; i++)
                 {
                     foreach (var num in storage[i])
                     {
-                        all_numbers_wincheck.Add(num);
+                        if (num == 2048)
+                        {
+                            Console.WriteLine("Congratulations! You've reached 2048!");
+                            Console.ReadKey();
+                            notwin = false;
+                            break;
+                        }
                     }
                 }
-                if (all_numbers_wincheck.Contains(2048))
-                {
-                    Console.WriteLine("Congratulations! You've reached 2048!");
-                    Console.ReadKey();
-                    return;
-                }
-
 
                 bool successfully_added = false;
                 int amount_of_checks = 0;
