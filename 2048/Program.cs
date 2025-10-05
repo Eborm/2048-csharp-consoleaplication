@@ -65,7 +65,6 @@ namespace _2048
                 var _location = freespots[_usethis.getrandomspot(freespots)]; //0-3 first row , 4-7 second row, 8-11 third row, 12-15 fourth row
                 int _number = _usethis.numbergenerator();
 
-                //_usethis.printboard(last_round);
                 decimal tempnum = _location/4;
                 int _column = _location % 4;
                 int _row = (int)Math.Floor(tempnum);
@@ -73,29 +72,10 @@ namespace _2048
                 _column_storage[_column] = _number;
                 freespots.Remove(_location);
                 trackinglist[_location] = 1;
-                //Console.WriteLine($"{_location}");
 
-                //Console.WriteLine();
                 _usethis.printboard(storage);
-                //Console.WriteLine();
-                string printlist2d = "";
-                for (int i = 0; i < 4; i++)
-                {
-                    for (int j=0; j<4; j++)
-                    {
-                        printlist2d += $"{trackinglist[j+i*4]} | ";
-                    }
-                    printlist2d += "\n";
-                }
-                Console.WriteLine(printlist2d);
-                //Console.WriteLine();
-                //Console.WriteLine(string.Join(", ", trackinglist));
-                //string print = string.Join(", ", freespots);
-                //Console.WriteLine();
-                //Console.WriteLine(print);
 
                 last_round = storage;
-
 
                 int direction = _usethis.getdirection(); //0 = up, 1 = right, 2 = down, 3 = left
 
@@ -226,9 +206,7 @@ namespace _2048
                                 }
                             }
                         }
-                        break;
-                        
-                        
+                        break          
                 }
             }
         }
