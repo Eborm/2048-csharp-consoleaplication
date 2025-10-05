@@ -1,5 +1,9 @@
 ﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using System.Data.Common;
+using System.Net;
 using System.Numerics;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace _2048
 {
@@ -13,19 +17,31 @@ namespace _2048
                 { 0, new List<int>(){ 0, 0, 0, 0 } },
                 { 1, new List < int >() { 0, 0, 0, 0 } },
                 { 2, new List < int >() { 0, 0, 0, 0 } },
-                { 3, new List < int >() { 0, 0, 1024, 1024 } }
-            }
-            ;
+                { 3, new List < int >() { 0, 0, 0, 0 } }
+            };
+            Dictionary<int, List<int>> last_round = new Dictionary<int, List<int>>
+            {
+                { 0, new List<int>(){ 0, 0, 0, 0 } },
+                { 1, new List < int >() { 0, 0, 0, 0 } },
+                { 2, new List < int >() { 0, 0, 0, 0 } },
+                { 3, new List < int >() { 0, 0, 0, 0 } }
+            };
+
+            List<int> freespots = new List<int>(Enumerable.Range(0, 16)); //Keep track of what spots are free
+            List<int> trackinglist = new List<int>() { // 0 = empty 1 = filled
+                0, 0, 0, 0,
+                0, 0, 0, 0,
+                0, 0, 0, 0,
+                0, 0, 0, 0
+            };
 
             CustomFunc _usethis = new CustomFunc();
-
             Console.WriteLine("Welcome to my console representation of 2048");
+            Console.ReadKey();
 
             while (notwin)
             {
                 Console.Clear();
-
-                List<int> all_numbers_wincheck = new List<int>();
                 for (int i = 0; i < 4; i++)
                 {
                     foreach (var num in storage[i])
@@ -39,236 +55,187 @@ namespace _2048
                         }
                     }
                 }
-
-                bool successfully_added = false;
-                int amount_of_checks = 0;
-
-                while (successfully_added != true)
+                if (freespots.Count == 0)
                 {
-                    amount_of_checks++;
-                    int number = _usethis.numbergenerator();
-                    int row = _usethis.getrandomlocation();
-                    int column = _usethis.getrandomlocation();
-
-                    var column_storage = storage[row];
-
-                    if (column_storage[column] == 0)
-                    {
-                        column_storage[column] = number;
-                        successfully_added = true;
-                    }
-                    else if (amount_of_checks > 20)
-                    {
-                        List<int> all_numbers = new List<int>();
-                        for (int i = 0; i < 3; i++)
-                        {
-                            foreach (var num in storage[i])
-                            {
-                                all_numbers.Add(num);
-                            }
-                        }
-                        if (all_numbers_wincheck.Contains(2048) == false)
-                        {
-                            Console.WriteLine("No more space available to add a new number.");
-                            Console.WriteLine("Game Over! No more moves available.");
-                            Console.ReadKey();
-                            return;
-                        }
-                    }
+                    Console.WriteLine("Game Over! No more moves left.");
+                    Console.ReadKey();
+                    break;
                 }
 
+                var _location = freespots[_usethis.getrandomspot(freespots)]; //0-3 first row , 4-7 second row, 8-11 third row, 12-15 fourth row
+                int _number = _usethis.numbergenerator();
 
+                //_usethis.printboard(last_round);
+                decimal tempnum = _location/4;
+                int _column = _location % 4;
+                int _row = (int)Math.Floor(tempnum);
+                var _column_storage = storage[_row];
+                _column_storage[_column] = _number;
+                freespots.Remove(_location);
+                trackinglist[_location] = 1;
+                //Console.WriteLine($"{_location}");
+
+                //Console.WriteLine();
                 _usethis.printboard(storage);
+                //Console.WriteLine();
+                string printlist2d = "";
+                for (int i = 0; i < 4; i++)
+                {
+                    for (int j=0; j<4; j++)
+                    {
+                        printlist2d += $"{trackinglist[j+i*4]} | ";
+                    }
+                    printlist2d += "\n";
+                }
+                Console.WriteLine(printlist2d);
+                //Console.WriteLine();
+                //Console.WriteLine(string.Join(", ", trackinglist));
+                //string print = string.Join(", ", freespots);
+                //Console.WriteLine();
+                //Console.WriteLine(print);
+
+                last_round = storage;
+
+
                 int direction = _usethis.getdirection(); //0 = up, 1 = right, 2 = down, 3 = left
-                if (direction == 0)
-                {
-                    Dictionary<int, List<int>> rotated = new Dictionary<int, List<int>>();
-                    for (int i = 0; i < 4; i++)
-                    {
-                        List<int> new_column = new List<int>();
-                        for (int j = 3; j > -1; j--)
-                        {
-                            new_column.Add(storage[j][i]);
-                        }
-                        rotated.Add(i, new_column);
-                    }
-                    for (int i = 0; i < 4; i++)
-                    {
-                        List<int> column_storage = rotated[i];
-                        for (int j = 0; j < 4; j++)
-                        {
-                            for (int k = 3; k > -1; k -= 1)
-                            {
-                                int currentindex = k;
-                                int nextindex = k + 1;
-                                if (currentindex != 3)
-                                {
-                                    if (column_storage[nextindex] == 0)
-                                    {
-                                        column_storage[nextindex] = column_storage[currentindex];
-                                        column_storage[currentindex] = 0;
-                                    }
-                                    else if (column_storage[nextindex] == column_storage[currentindex])
-                                    {
-                                        column_storage[nextindex] = column_storage[nextindex] * 2;
-                                        column_storage[currentindex] = 0;
-                                    }
-                                }
-                            }
-                        }
-                        rotated[i] = column_storage;
-                    }
-                    for (int k = 0; k < 3; k++)
-                    {
-                        Dictionary<int, List<int>> rotated_back = new Dictionary<int, List<int>>();
-                        for (int i = 0; i < 4; i++)
-                        {
-                            List<int> new_column = new List<int>();
-                            for (int j = 3; j > -1; j--)
-                            {
-                                new_column.Add(rotated[j][i]);
-                            }
-                            rotated_back.Add(i, new_column);
-                        }
-                        rotated = rotated_back;
-                    }
-                    storage = rotated;
-                }
-                else if (direction == 1)
-                {
-                    for (int i = 0; i < 4; i++)
-                    {
-                        List<int> column_storage = storage[i];
-                        for (int j = 0; j < 4; j++)
-                        {
-                            for (int k = 3; k > -1; k -= 1)
-                            {
-                                int currentindex = k;
-                                int nextindex = k + 1;
-                                if (currentindex != 3)
-                                {
-                                    if (column_storage[nextindex] == 0)
-                                    {
-                                        column_storage[nextindex] = column_storage[currentindex];
-                                        column_storage[currentindex] = 0;
-                                    }
-                                    else if (column_storage[nextindex] == column_storage[currentindex])
-                                    {
-                                        column_storage[nextindex] = column_storage[nextindex] * 2;
-                                        column_storage[currentindex] = 0;
-                                    }
-                                }
-                            }
-                        }
-                        storage[i] = column_storage;
-                    }
-                }
-                else if (direction == 2)
-                {
-                    Dictionary<int, List<int>> rotated = new Dictionary<int, List<int>>();
-                    for (int i = 0; i < 4; i++)
-                    {
-                        List<int> new_column = new List<int>();
-                        for (int j = 3; j > -1; j--)
-                        {
-                            new_column.Add(storage[j][i]);
-                        }
-                        rotated.Add(i, new_column);
-                    }
-                    for (int k = 0; k < 2; k++)
-                    {
-                        Dictionary<int, List<int>> rotated_back_2 = new Dictionary<int, List<int>>();
-                        for (int i = 0; i < 4; i++)
-                        {
-                            List<int> new_column = new List<int>();
-                            for (int j = 3; j > -1; j--)
-                            {
-                                new_column.Add(rotated[j][i]);
-                            }
-                            rotated_back_2.Add(i, new_column);
-                        }
-                        rotated = rotated_back_2;
-                    }
-                    for (int i = 0; i < 4; i++)
-                    {
-                        List<int> column_storage = rotated[i];
-                        for (int j = 0; j < 4; j++)
-                        {
-                            for (int k = 3; k > -1; k -= 1)
-                            {
-                                int currentindex = k;
-                                int nextindex = k + 1;
-                                if (currentindex != 3)
-                                {
-                                    if (column_storage[nextindex] == 0)
-                                    {
-                                        column_storage[nextindex] = column_storage[currentindex];
-                                        column_storage[currentindex] = 0;
-                                    }
-                                    else if (column_storage[nextindex] == column_storage[currentindex])
-                                    {
-                                        column_storage[nextindex] = column_storage[nextindex] * 2;
-                                        column_storage[currentindex] = 0;
-                                    }
-                                }
-                            }
-                        }
-                        rotated[i] = column_storage;
-                    }
-                    Dictionary<int, List<int>> rotated_back = new Dictionary<int, List<int>>();
-                    for (int i = 0; i < 4; i++)
-                    {
-                        List<int> new_column = new List<int>();
-                        for (int j = 3; j > -1; j--)
-                        {
-                            new_column.Add(rotated[j][i]);
-                        }
-                        rotated_back.Add(i, new_column);
-                    }
-                    rotated = rotated_back;
-                    storage = rotated;
-                }
-                else if (direction == 3)
-                {
-                    for (int i = 0; i < 4; i++)
-                    {
-                        List<int> column_storage = storage[i];
-                        for (int j = 0; j < 4; j++)
-                        {
-                            for (int k = 0; k < 4; k++)
-                            {
 
-                                int currentindex = k;
-                                int nextindex = k - 1;
-                                if (currentindex != 0)
+                switch (direction)
+                {
+                    case 0:
+                        // up
+                        for (int i = 0; i < 4; i++) // i = row
+                        {
+                            for (int j = 3; j > -1; j--) // j = column
+                            {
+                                int list_index = j + i * 4;
+                                if (list_index != 0 && list_index != 1 && list_index != 2 && list_index != 3)
                                 {
-
-                                    if (column_storage[nextindex] == 0)
+                                    int move_index = list_index - 4;
+                                    List<int> moveindexinij = _usethis.TranslateIndexToI_J(move_index);
+                                    if (trackinglist[move_index] == 0 && trackinglist[list_index] == 1)
                                     {
-                                        column_storage[nextindex] = column_storage[currentindex];
-                                        column_storage[currentindex] = 0;
+                                        trackinglist[move_index] = 1;
+                                        trackinglist[list_index] = 0;
+                                        freespots.Add(list_index);
+                                        freespots.Remove(move_index);
+                                        storage[moveindexinij[0]][moveindexinij[1]] = storage[i][j];
+                                        storage[i][j] = 0;
                                     }
-                                    else if (column_storage[nextindex] == column_storage[currentindex])
+                                    else if (storage[i][j] == storage[moveindexinij[0]][moveindexinij[1]] && trackinglist[list_index] != 0)
                                     {
-                                        column_storage[nextindex] = column_storage[nextindex] * 2;
-                                        column_storage[currentindex] = 0;
+                                        trackinglist[move_index] = 1;
+                                        trackinglist[list_index] = 0;
+                                        storage[moveindexinij[0]][moveindexinij[1]] = storage[i][j] * 2;
+                                        storage[i][j] = 0;
+                                        freespots.Add(list_index);
                                     }
                                 }
                             }
                         }
-                        storage[i] = column_storage;
-                    }
+                        break;
+                    case 1:
+                        // right
+                        for (int i = 3; i > -1; i--) // i = row
+                        {
+                            for (int j = 3; j > -1; j--) // j = column
+                            {
+                                int list_index = j + i * 4;
+                                if (list_index != 3 && list_index != 7 && list_index != 11 && list_index != 15)
+                                {
+                                    int move_index = list_index + 1;
+                                    if (trackinglist[move_index] == 0 && trackinglist[list_index] == 1)
+                                    {
+                                        trackinglist[move_index] = 1;
+                                        trackinglist[list_index] = 0;
+                                        freespots.Add(list_index);
+                                        freespots.Remove(move_index);
+                                        storage[i][j + 1] = storage[i][j];
+                                        storage[i][j] = 0;
+                                    }
+                                    else if (storage[i][j] == storage[i][j + 1] && trackinglist[list_index] != 0)
+                                    {
+                                        trackinglist[move_index] = 1;
+                                        trackinglist[list_index] = 0;
+                                        storage[i][j] = 0;
+                                        storage[i][j + 1] = storage[i][j + 1] * 2;
+                                        freespots.Add(list_index);
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                    case 2:
+                        //down
+                        for (int i = 3; i > -1; i--) // i = row
+                        {
+                            for (int j = 3; j > -1; j--) // j = column
+                            {
+                                int list_index = j + i * 4;
+                                if (list_index != 12 && list_index != 13 && list_index != 14 && list_index != 15)
+                                {
+                                    int move_index = list_index + 4;
+                                    List<int> moveindexinij = _usethis.TranslateIndexToI_J(move_index);
+                                    if (trackinglist[move_index] == 0 && trackinglist[list_index] == 1)
+                                    {
+                                        trackinglist[move_index] = 1;
+                                        trackinglist[list_index] = 0;
+                                        freespots.Add(list_index);
+                                        freespots.Remove(move_index);
+                                        storage[moveindexinij[0]][moveindexinij[1]] = storage[i][j];
+                                        storage[i][j] = 0;
+                                    }
+                                    else if (storage[i][j] == storage[moveindexinij[0]][moveindexinij[1]] && trackinglist[list_index] != 0)
+                                    {
+                                        trackinglist[move_index] = 1;
+                                        trackinglist[list_index] = 0;
+                                        storage[moveindexinij[0]][moveindexinij[1]] = storage[i][j] * 2;
+                                        storage[i][j] = 0;
+                                        freespots.Add(list_index);
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                    case 3:
+                        //left
+                        for (int i = 0; i<4; i++) // i = row
+                        {
+                            for (int j = 0; j<4; j++) // j = column
+                            {
+                                int list_index = j + i * 4;
+                                if (list_index != 0 && list_index != 4 && list_index != 8 && list_index != 12)
+                                {
+                                    int move_index = list_index - 1;
+                                    if (trackinglist[move_index] == 0 && trackinglist[list_index] == 1)
+                                    {
+                                        trackinglist[move_index] = 1;
+                                        trackinglist[list_index] = 0;
+                                        freespots.Add(list_index);
+                                        freespots.Remove(move_index);
+                                        storage[i][j - 1] = storage[i][j];
+                                        storage[i][j] = 0;
+                                    }
+                                    else if (storage[i][j] == storage[i][j-1] && trackinglist[list_index] != 0)
+                                    {
+                                        trackinglist[move_index] = 1;
+                                        trackinglist[list_index] = 0;
+                                        storage[i][j] = 0;
+                                        storage[i][j - 1] = storage[i][j-1] * 2;
+                                        freespots.Add(list_index);
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                        
+                        
                 }
             }
-
-
-
-
-
         }
 
         internal class CustomFunc
         {
+            Random mainrandom = new Random();
             public int numbergenerator()
             {
                 Random random = new Random();
@@ -283,11 +250,9 @@ namespace _2048
                 }
             }
 
-            public int getrandomlocation()
+            public int getrandomspot(List<int>freespots)
             {
-                Random random = new Random();
-                int location = random.Next(0, 4); //0, 1, 2, or 3
-                return location;
+                return mainrandom.Next(0, freespots.Count); //0-15
             }
 
             public void printboard(Dictionary<int, List<int>> storage)
@@ -328,7 +293,16 @@ namespace _2048
                 }
                 return direction;
             }
+
+            public List<int> TranslateIndexToI_J(int index)
+            {
+                List<int> result = new List<int>();
+                int i = index / 4;
+                int j = index % 4;
+                result.Add(i);
+                result.Add(j);
+                return result;
+            }
         }
     }
-
 }
