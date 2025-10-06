@@ -19,13 +19,6 @@ namespace _2048
                 { 2, new List < int >() { 0, 0, 0, 0 } },
                 { 3, new List < int >() { 0, 0, 0, 0 } }
             };
-            Dictionary<int, List<int>> last_round = new Dictionary<int, List<int>>
-            {
-                { 0, new List<int>(){ 0, 0, 0, 0 } },
-                { 1, new List < int >() { 0, 0, 0, 0 } },
-                { 2, new List < int >() { 0, 0, 0, 0 } },
-                { 3, new List < int >() { 0, 0, 0, 0 } }
-            };
 
             List<int> freespots = new List<int>(Enumerable.Range(0, 16)); //Keep track of what spots are free
             List<int> trackinglist = new List<int>() { // 0 = empty 1 = filled
